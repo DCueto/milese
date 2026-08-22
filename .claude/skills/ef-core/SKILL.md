@@ -133,7 +133,13 @@ dotnet ef database update --project src/Data/Data.Db --startup-project src/Api/A
 Migrations live inside `Data.Db` itself (no separate `Data.Migrations` project) — Milese's a single
 personal-scale API host, not a multi-host solution that needs migrations decoupled from the DbContext
 project. `--startup-project` points at `Api.Rest` because that's where the connection string and
-`AddDbContextFactory<MileseDbContext>` registration live.
+`AddDbContextFactory<MileseDbContext>` registration live — this means `Api.Rest` needs a
+`Microsoft.EntityFrameworkCore.Design` `PackageReference` (`PrivateAssets="all"` — it's design-time-only
+tooling, not a runtime dependency). Generated migration files use provider-specific types
+(`NpgsqlValueGenerationStrategy` for the identity-column annotation), so `Data.Db` itself needs a direct
+`Npgsql.EntityFrameworkCore.PostgreSQL` reference too, not just `Microsoft.EntityFrameworkCore` — without
+it the generated `Migrations/*.cs` files fail to compile with `CS0246: the type or namespace 'Npgsql'
+could not be found`.
 
 Migration names: PascalCase describing the schema change (`AddTitleToLesson`, `CreateProgressTable`).
 Never hand-edit generated migration files — add a new migration to correct mistakes.
