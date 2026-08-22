@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Milese.Data.Db</RootNamespace>
+    <AssemblyName>Milese.Data.Db</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.Types\Common.Types.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Server\Common.Server.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Api/">
+    <Project Path="src/Api/Api.Rest/Api.Rest.csproj" />
+  </Folder>
+  <Folder Name="/src/Common/">
+    <Project Path="src/Common/Common.Server/Common.Server.csproj" />
+    <Project Path="src/Common/Common.Shared/Common.Shared.csproj" />
+    <Project Path="src/Common/Common.Types/Common.Types.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/">
+    <Project Path="src/Data/Data.Db/Data.Db.csproj" />
+    <Project Path="src/Data/Data.DbAccess/Data.DbAccess.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Services.Core/Services.Core.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Milese.Services.Core</RootNamespace>
+    <AssemblyName>Milese.Services.Core</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Data\Data.DbAccess\Data.DbAccess.csproj" />
+  </ItemGroup>
+</Project>
