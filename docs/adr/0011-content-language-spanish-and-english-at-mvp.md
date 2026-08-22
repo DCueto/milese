@@ -1,0 +1,5 @@
+# Content Language is authored in both Spanish and English for MVP — unlike Code Language, it isn't narrowed
+
+The Lesson schema supports multiple Content Languages, and unlike Code Language (ADR-0006, narrowed to C# only for MVP), **both Spanish and English are authored from day one**. This is a deliberate asymmetry: Code Language narrows because the founder can only reliably *review* one language's code; Content Language doesn't have that review-quality bottleneck (the founder is fluent in both), and bilingual content directly serves the stated long-term goal (ADR/Q1: a realistic path to a real multi-user product) — Spanish for the founder's home market, English for the broader software engineering audience most reference material (and the roadmap's own cited books) already lives in.
+
+**Consequences:** the content-authoring pipeline (ADR-0004) produces two files per Lesson (one per Content Language) from the start, not one — this roughly doubles authoring/curation effort per Lesson compared to a single-language MVP, and that cost was accepted deliberately rather than deferred.

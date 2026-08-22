@@ -1,0 +1,5 @@
+# Mobile and web are separate codebases, not a shared-UI monorepo
+
+The Expo (React Native) app and the Next.js web app are independent codebases sharing only generated TypeScript API types — there's no Solito/Tamagui/NativeWind layer unifying their UI, despite both needing similar gamified, animated progress UI (progress rings, streaks, unlock animations). We considered a shared-UI monorepo approach specifically to avoid duplicating that animation work, but rejected it for the MVP: this is the founder's first React Native app, and stacking "learn RN" together with "learn a cross-platform UI abstraction" was judged too much unfamiliar surface area to debug at once, especially since cross-platform styling libraries are known to leak abstraction on complex animations.
+
+**Consequences:** gamification/animation UI will be built twice (once per platform) for now. Migrating to a shared layer later remains a well-trodden, incremental path if the duplication becomes painful — this ADR does not forbid revisiting it.
