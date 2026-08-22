@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Milese.Api.Rest.Extensions;
 using Milese.Aspire.ServiceDefaults;
 using Milese.Data.Db;
+using Scalar.AspNetCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
@@ -20,6 +21,7 @@ try
         configuration.ReadFrom.Configuration(context.Configuration));
 
     builder.Services.AddControllers();
+    builder.Services.AddOpenApi();
 
     builder.AddNpgsqlDbContext<MileseDbContext>(
         "milesedb",
@@ -37,6 +39,12 @@ try
 
     app.MapDefaultEndpoints();
     app.MapControllers();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+        app.MapScalarApiReference();
+    }
 
     await app.RunAsync();
 }

@@ -27,6 +27,10 @@
          re-check the version against learn.microsoft.com before pinning for real. -->
     <PackageVersion Include="Microsoft.Agents.AI.Foundry" Version="1.0.0-preview.1" />
 
+    <!-- API docs (apps/api/src/Api/Api.Rest) -->
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.17.1" />
+
     <!-- Observability -->
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
