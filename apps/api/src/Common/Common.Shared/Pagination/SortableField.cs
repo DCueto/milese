@@ -36,6 +36,7 @@ public static class SortableFieldExtensions
                 (null, SortDirection.Desc) => query.OrderByDescending(field.KeySelector),
                 (not null, SortDirection.Asc) => ordered.ThenBy(field.KeySelector),
                 (not null, SortDirection.Desc) => ordered.ThenByDescending(field.KeySelector),
+                (_, _) => throw new ArgumentOutOfRangeException(nameof(sorts), sort.Direction, "Unsupported sort direction."),
             };
         }
 
