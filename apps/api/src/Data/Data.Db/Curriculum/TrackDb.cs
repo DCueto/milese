@@ -5,12 +5,12 @@ using Milese.Common.Types.ValueTypes.Identity;
 
 namespace Milese.Data.Db.Curriculum;
 
-[Table("tracks")]
+[Table("tracks", Schema = "curriculum")]
 public sealed class TrackDb
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public TrackId Id { get; set; } = null!;
+    public TrackId Id { get; set; }
 
     public required TrackTitle Title { get; set; }
 

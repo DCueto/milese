@@ -3,7 +3,7 @@ using Milese.Common.Types.ValueTypes.Identity;
 
 namespace Milese.Common.Types.Entities.Curriculum;
 
-public sealed record ConceptBo
+public sealed class ConceptBo
 {
     public required ConceptId Id { get; init; }
 

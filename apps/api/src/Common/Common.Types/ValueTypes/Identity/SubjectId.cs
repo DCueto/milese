@@ -4,10 +4,8 @@ using Milese.Common.Shared;
 
 namespace Milese.Common.Types.ValueTypes.Identity;
 
-public sealed class SubjectId : IIdValueType<SubjectId>
+public readonly record struct SubjectId(int Value) : IIdValueType<SubjectId>
 {
-    public int Value { get; init; }
-
     public static string FieldName => nameof(SubjectId);
 
     public static Result<SubjectId, InvalidData> Parse(int value) =>

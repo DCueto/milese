@@ -5,12 +5,12 @@ using Milese.Common.Types.ValueTypes.Identity;
 
 namespace Milese.Data.Db.Curriculum;
 
-[Table("concepts")]
+[Table("concepts", Schema = "curriculum")]
 public sealed class ConceptDb
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public ConceptId Id { get; set; } = null!;
+    public ConceptId Id { get; set; }
 
     public required SubjectId SubjectId { get; set; }
 

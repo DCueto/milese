@@ -11,18 +11,24 @@ start from the `*Db` type and bolt a `Bo` on afterward.
 
 ## `Bo` — `Common.Types/Entities/<Group>/<Name>Bo.cs`
 
-An immutable record built entirely from Value Types (see `common-layer`) and other `Bo`s. No EF Core
-attributes, no navigation properties, no knowledge that a database exists.
+An immutable **`sealed class`** (not `record` — see `csharp-standards`: `record` is reserved for Value
+Types; matches `iplan-nexus-core`'s own `Bo`s) built entirely from Value Types (see `common-layer`) and
+other `Bo`s, with `required ... { get; init; }` properties. No EF Core attributes, no navigation
+properties, no knowledge that a database exists.
 
 ```csharp
-public sealed record LessonBo
+public sealed class LessonBo
 {
     public required LessonId Id { get; init; }
     public required ConceptId ConceptId { get; init; }
-    public required LessonOrder Order { get; init; }
+    public required SortOrder Order { get; init; }
     public required EstimatedMinutes EstimatedMinutes { get; init; }
 }
 ```
+
+Being a plain class, a `Bo` has no `with` expression and no structural equality — to change one field,
+reconstruct explicitly (`new LessonBo { Id = existing.Id, ..., Title = newTitle }`), and compare
+field-by-field in tests rather than comparing two whole `Bo` instances.
 
 If a Value Type doesn't exist yet for one of the `Bo`'s fields, create it first (`common-layer`)
 rather than using a raw primitive "for now."
@@ -57,8 +63,8 @@ type.
   performance. If the query encodes a rule, name the method after the rule
   (`GetUnlockedConceptsAsync`, not `QueryConceptsWithJoin`), and keep the *decision* of what
   "unlocked" means documented in `Services.Core` or `CONTEXT.md`, not buried in SQL.
-- Migrations live in a dedicated migrations project, generated via `dotnet ef migrations add <Name>`
-  (see `ef-core`) — never hand-edit a generated migration's `Up`/`Down`.
+- Migrations live inside `Data.Db` itself (no separate migrations project — see `ef-core`), generated
+  via `dotnet ef migrations add <Name>` — never hand-edit a generated migration's `Up`/`Down`.
 
 ## Rules
 

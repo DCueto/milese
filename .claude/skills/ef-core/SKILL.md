@@ -61,7 +61,7 @@ public sealed class LessonDb
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public LessonId Id { get; set; } = null!;   // DB-generated — never required, see below
+    public LessonId Id { get; set; }   // DB-generated — never required, see below
 
     public required LessonTitle Title { get; set; }
 }
@@ -75,11 +75,12 @@ one's `Precision`. Never add `[MaxLength(...)]`/`HasPrecision(...)` yourself —
 duplicate (and could drift from) the value type's own `MaxLength`/`Precision`.
 
 An identity-generated key (`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`) must **not** be
-`required` — C#'s `new()` generic constraint (used by `IIdValueType<TSelf>` and every
-`ValueTypeParser` method) cannot be satisfied by a type with required members, and every value type
-implementing `IIdValueType<TSelf>` is exactly such a type. Give it `= null!` instead and let EF Core
-populate it after `SaveChangesAsync`. Non-generated columns typed with a value type stay `required` as
-normal — this only applies to the generated key itself.
+`required` on the `*Db` entity, and needs no initializer either — every Value Type is a
+`readonly record struct` (see `common-layer`), so its implicit default (`Value == 0`) is already the
+correct "not yet DB-generated" state, and a struct property never triggers the nullable-reference-type
+warning a reference type would. EF Core populates the real value after `SaveChangesAsync`. Non-generated
+columns typed with a value type stay `required` as normal on the `*Db` entity itself — this only applies
+to the generated key.
 
 ## DataAccess constructor
 

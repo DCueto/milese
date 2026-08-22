@@ -3,7 +3,7 @@ using Milese.Common.Types.ValueTypes.Identity;
 
 namespace Milese.Common.Types.Entities.Curriculum;
 
-public sealed record SubjectBo
+public sealed class SubjectBo
 {
     public required SubjectId Id { get; init; }
 

@@ -3,7 +3,7 @@ using Milese.Common.Types.ValueTypes.Identity;
 
 namespace Milese.Common.Types.Entities.Curriculum;
 
-public sealed record TrackBo
+public sealed class TrackBo
 {
     public required TrackId Id { get; init; }
 

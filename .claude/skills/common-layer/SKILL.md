@@ -68,31 +68,39 @@ Server-side helpers that only make sense with EF Core: the `ValueTypeConverter<T
 ## Implementing a Value Type
 
 Every domain primitive lives in `Common.Types/ValueTypes/<Group>` (see `naming-conventions` for the
-file/folder pattern) as a `sealed class` implementing the matching `Common.Shared` contract, with a
-`Value` init-only property and a static `Parse(...)` returning `Result<TSelf, InvalidData>`. There is
-no way to get an instance that skips validation through `Parse` — the object initializer
-(`new TSelf { Value = ... }`) used internally by `ValueTypeParser` and the EF Core converter is the
-only other construction path, and both are trusted-input-only call sites inside the framework, never
-something application code calls directly.
+file/folder pattern) as a **`readonly record struct`** implementing the matching `Common.Shared`
+contract, `Value` declared as its single positional parameter, with a static `Parse(...)` returning
+`Result<TSelf, InvalidData>`. There is no way to get an instance that skips validation through `Parse`
+in application code — the positional constructor and the object-initializer form
+(`new TSelf { Value = ... }`) used internally by `ValueTypeParser` and the EF Core converter both exist,
+but only the latter two are trusted-input-only call sites inside the framework.
+
+**`readonly record struct`, not a class.** `IValueType<TSelf,T>` implements `IComparable<TSelf>` via a
+default interface method, but interfaces cannot override `object.Equals`/`GetHashCode` — a plain
+`class` falls back to reference equality, so two value types wrapping the identical underlying `Value`
+compare unequal (`IsStrictlyEqualTo` fails, `==` fails, dictionary/set lookups fail). A `record` (class
+or struct) generates value-based `Equals`/`GetHashCode`/`ToString` for free; `struct` is the right flavor
+here — a value type wrapping one primitive has no business being heap-allocated, and struct's *implicit*
+parameterless constructor (present alongside any declared constructor, unlike a class) is what keeps
+`ValueTypeParser`'s `new()` constraint satisfied. This mirrors `iplan-nexus-core`'s own value types
+exactly (e.g. `public readonly record struct CaseId(int Value) : IIdValueType<CaseId>`) — check a
+reference project's actual concrete types before assuming a shape from its interfaces alone.
 
 **`Value` is never `required`.** Every `ValueTypeParser` method (and `IIdValueType<TSelf>`/
 `IDateTimeValueType<TSelf>` directly) constrains its own `TSelf` with `new()`, and C# forbids a `new()`
 constraint from being satisfied by a type with `required` members (CS9040) — so a Value Type that goes
-through `ValueTypeParser` at all can't mark `Value` `required` without breaking the build. This is the
-one deliberate exception to `csharp-standards`' "required properties" rule; the "never expose
-construction outside `Parse`" guarantee below still holds, it's just a convention rather than a
-compiler-enforced one for this specific property.
+through `ValueTypeParser` at all can't mark `Value` `required` without breaking the build. A positional
+record struct's generated property isn't `required` by default, so this is automatic — just don't add
+the modifier yourself.
 
 **Bounded number** — implement `IValueType<TSelf,T>` directly when no specialised contract fits:
 
 ```csharp
-public sealed class EstimatedMinutes : IValueType<EstimatedMinutes, int>
+public readonly record struct EstimatedMinutes(int Value) : IValueType<EstimatedMinutes, int>
 {
-    public int Value { get; init; }
-
     public static Result<EstimatedMinutes, InvalidData> Parse(int value) =>
         value is >= 1 and <= 15
-            ? new EstimatedMinutes { Value = value }
+            ? new EstimatedMinutes(value)
             : new InvalidData
             {
                 FieldName = nameof(EstimatedMinutes),
@@ -106,10 +114,8 @@ public sealed class EstimatedMinutes : IValueType<EstimatedMinutes, int>
 encodes "strictly positive" and the async exists-check:
 
 ```csharp
-public sealed class LessonId : IIdValueType<LessonId>
+public readonly record struct LessonId(int Value) : IIdValueType<LessonId>
 {
-    public int Value { get; init; }
-
     public static string FieldName => nameof(LessonId);
 
     public static Result<LessonId, InvalidData> Parse(int value) =>
@@ -126,21 +132,22 @@ reconstructing a `Bo` from a `*Db` row).
 
 **String** — implement `IStringValueType<TSelf>` and delegate to `ValueTypeParser`; declaring
 `MaxLength` is what lets `Common.Server`'s converter registry set the database column's length
-automatically (see `ef-core`) — never hardcode the number in a `[MaxLength(...)]` attribute instead.
-A string property does trigger nullable-reference warnings without `required`, so give it `= default!`
-instead:
+automatically (see `ef-core`) — never hardcode the number in a `[MaxLength(...)]` attribute instead:
 
 ```csharp
-public sealed class LessonTitle : IStringValueType<LessonTitle>
+public readonly record struct LessonTitle(string Value) : IStringValueType<LessonTitle>
 {
-    public string Value { get; init; } = default!;
-
     public static int MaxLength => 200;
 
     public static Result<LessonTitle, InvalidData> Parse(string? value) =>
         ValueTypeParser.StringNotEmptyAndMaxLength<LessonTitle>(value, nameof(LessonTitle));
 }
 ```
+
+On a `*Db` entity, a value-type `[Key]` column with `[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`
+needs no `= null!`/initializer at all — a struct's implicit default (`Value == 0`) is already what an
+unset, not-yet-DB-generated ID should be, and it isn't subject to the nullable-reference-type warning
+that forced that workaround for a class-shaped value type. See `ef-core`.
 
 Rules:
 
