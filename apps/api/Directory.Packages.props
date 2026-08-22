@@ -1,0 +1,43 @@
+<Project>
+
+  <!-- Versions below are best-effort placeholders, not verified against nuget.org —
+       re-check each one (`dotnet package add <Id>` resolves the real latest) when the
+       actual projects are scaffolded and this file starts being restored for real. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Analyzers (referenced by every project via Directory.Build.props) -->
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.7.0.115032" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.11.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
+
+    <!-- Data (apps/api/src/Data/*) — PostgreSQL per docs/adr/0010 -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0" />
+    <PackageVersion Include="EFCore.CheckConstraints" Version="8.0.6" />
+
+    <!-- AI Tutor (apps/api/src/Services/Services.Core/Tutor) — see docs/adr's Azure AI
+         Foundry dependency. Prerelease: Microsoft Agent Framework is actively evolving,
+         re-check the version against learn.microsoft.com before pinning for real. -->
+    <PackageVersion Include="Microsoft.Agents.AI.Foundry" Version="1.0.0-preview*" />
+
+    <!-- Observability -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.11.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
+
+    <!-- Testing — see .claude/skills/testing -->
+    <PackageVersion Include="TUnit" Version="0.25.20" />
+    <PackageVersion Include="Shouldly" Version="4.2.1" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+  </ItemGroup>
+
+</Project>

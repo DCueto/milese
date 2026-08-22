@@ -1,0 +1,18 @@
+// Never block on async — always await. Both cause deadlocks on a captured
+// SynchronizationContext and wrap exceptions in AggregateException.
+P:System.Threading.Tasks.Task`1.Result;Use 'await' instead of '.Result'.
+M:System.Threading.Tasks.Task.Wait(System.Int32);Use 'await' instead of '.Wait()'.
+M:System.Threading.Tasks.Task.Wait;Use 'await' instead of '.Wait()'.
+
+// No ambient/non-deterministic time — makes tests flaky and offline-sync
+// timestamp comparisons (see docs/adr/0001) impossible to reason about.
+P:System.DateTime.Now;Use 'DateTime.UtcNow' (or an injected time source once one exists).
+P:System.DateTime.Today;Use 'DateTime.UtcNow.Date' (or an injected time source once one exists).
+
+// Don't second-guess the GC.
+M:System.GC.Collect;Do not force a GC collection.
+
+// AllOrSome<T>'s discriminator/items must be read through Match/Switch — reading
+// them directly is how a branch (the "all" case) gets silently forgotten.
+P:Milese.Common.Shared.AllOrSome`1.IsAll;Use Match or Switch — they force handling both the all-branch and the some-branch.
+P:Milese.Common.Shared.AllOrSome`1.Items;Use Match or Switch — reading Items without checking IsAll silently ignores the all-branch.
