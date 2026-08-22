@@ -100,3 +100,17 @@ a linked git worktree and takes its own port/database slot automatically — no 
 | `testing` | Writing tests for any layer. |
 | `worktrees` | Creating/removing a git worktree, running more than one Milese instance at once, or debugging a port/database collision between them. |
 | `record-decision` | You just made (or are about to make) a call that's hard to reverse, surprising, and the result of a real trade-off. |
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown under `.scratch/<feature-slug>/` — this repo has no git remote yet. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
