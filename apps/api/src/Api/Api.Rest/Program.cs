@@ -26,7 +26,8 @@ try
         configureDbContextOptions: options => options
             .UseSnakeCaseNamingConvention()
             .UseValidationCheckConstraints()
-            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+            .ConfigureMilese());
 
     builder.Services.AddDbContextFactory<MileseDbContext>(lifetime: ServiceLifetime.Scoped);
 

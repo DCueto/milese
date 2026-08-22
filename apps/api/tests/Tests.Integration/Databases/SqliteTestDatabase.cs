@@ -34,6 +34,7 @@ public sealed class SqliteTestDatabase : ITestDatabase
             .UseSqlite(connection)
             .UseSnakeCaseNamingConvention()
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+            .ConfigureMilese()
             .Options;
 
         factory = new TestDbContextFactory(options);

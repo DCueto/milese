@@ -41,6 +41,7 @@ public sealed class PostgresTestDatabase : ITestDatabase
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+            .ConfigureMilese()
             .ReplaceService<IModelCacheKeyFactory, SchemaAwareModelCacheKeyFactory>()
             .ReplaceService<IModelCustomizer, SchemaSuffixModelCustomizer>();
 

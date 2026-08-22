@@ -20,15 +20,19 @@ public sealed class MileseDbContext : DbContext
 
     public DbSet<LessonDb> Lessons => Set<LessonDb>();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        base.OnConfiguring(optionsBuilder);
-        optionsBuilder.UseValueTypeTranslation();
-    }
-
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         base.ConfigureConventions(configurationBuilder);
         configurationBuilder.RegisterValueTypeConverters(typeof(TrackId).Assembly);
+    }
+}
+
+public static class MileseDbContextOptionsBuilderExtensions
+{
+    public static TBuilder ConfigureMilese<TBuilder>(this TBuilder optionsBuilder)
+        where TBuilder : DbContextOptionsBuilder
+    {
+        optionsBuilder.UseValueTypeTranslation();
+        return optionsBuilder;
     }
 }
