@@ -74,9 +74,12 @@ dotnet run --project src/Api/Api.Rest           # Api.Rest alone, against a manu
 ```
 
 The AppHost (`src/Aspire/Aspire.AppHost`) is the normal way to run the API locally — it starts a
-Postgres container, waits for `Aspire.MigrationService` to apply migrations, then starts `Api.Rest`
-wired to it via service discovery. Running `Api.Rest` directly still works (`AddNpgsqlDbContext` falls
-back to `ConnectionStrings:milesedb` in `appsettings.json`) for a manually-run Postgres container — see
+Postgres container (fixed name `milese-postgres`, port `15432`, survives the AppHost stopping), waits
+for `Aspire.MigrationService` to apply migrations, then starts `Api.Rest` on `http://localhost:5080`
+wired to it via service discovery. It also self-detects whether it's running from the main checkout or
+a linked git worktree and takes its own port/database slot automatically — no flags needed, see
+`worktrees`. Running `Api.Rest` directly still works (`AddNpgsqlDbContext` falls back to
+`ConnectionStrings:milesedb` in `appsettings.json`) for a manually-run Postgres container — see
 `ef-core`.
 
 `apps/web`/`apps/mobile`/`apps/content`: _(not yet scaffolded)_.
@@ -95,4 +98,5 @@ back to `ConnectionStrings:milesedb` in `appsettings.json`) for a manually-run P
 | `naming-conventions` | Naming a new project, class, or file and unsure which suffix/casing applies. |
 | `localization` | Adding or changing user-facing text, a validation/error message, or culture handling. |
 | `testing` | Writing tests for any layer. |
+| `worktrees` | Creating/removing a git worktree, running more than one Milese instance at once, or debugging a port/database collision between them. |
 | `record-decision` | You just made (or are about to make) a call that's hard to reverse, surprising, and the result of a real trade-off. |

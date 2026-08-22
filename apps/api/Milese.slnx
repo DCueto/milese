@@ -22,6 +22,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Api.Rest.Tests/Api.Rest.Tests.csproj" />
+    <Project Path="tests/Aspire.AppHost.Tests/Aspire.AppHost.Tests.csproj" />
     <Project Path="tests/Common.Shared.Tests/Common.Shared.Tests.csproj" />
     <Project Path="tests/Common.Types.Tests/Common.Types.Tests.csproj" />
     <Project Path="tests/Data.DbAccess.Tests/Data.DbAccess.Tests.csproj" />
