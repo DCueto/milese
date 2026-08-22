@@ -19,7 +19,11 @@ description: Naming a new project, class, or file in apps/api and unsure which s
 
 ## Rules
 
-- Namespaces mirror the physical folder path: `Milese.Api.<Group>.<Project>.<Path>`.
+- Namespaces are `Milese.<Project>.<Path>`, where `<Project>` already carries its dotted group prefix
+  (`Common.Shared`, `Data.DbAccess`, `Services.Core`, `Api.Rest`, ...) — the `apps/api/src/<Group>/`
+  folder is a physical/solution grouping only, not part of the namespace. `RootNamespace`/
+  `AssemblyName` in each `.csproj` are set to `Milese.<Project>` accordingly (see `Common.Shared`/
+  `Common.Server` for the existing examples).
 - File-scoped namespaces always (`namespace X;`, not `namespace X { }`) — enforced via `.editorconfig` as a warning.
 - No `I<Name>Service`/`I<Name>DataAccess` interface unless there's a second real implementation (a test double that isn't just "the same class against an in-memory DB," a cached variant, etc.) — see `data-layer`. Don't add one pre-emptively.
 - English identifiers everywhere, regardless of Content Language (see `CLAUDE.md` → Always-on baseline).

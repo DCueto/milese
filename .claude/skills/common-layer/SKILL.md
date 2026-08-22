@@ -53,10 +53,15 @@ Server-side helpers that only make sense with EF Core: the `ValueTypeConverter<T
 `QueryableFilterExtensions`/`QueryablePaginationExtensions`.
 
 - **May depend on:** `Common.Shared` only.
-- Referenced only from `Data.DbAccess` (where the `DbContext` and `*ReadDataAccess`/`*UpdateDataAccess`
-  classes live) — never from `Services.Core` or `Api`. If a helper here seems useful in
-  `Services.Core`, that's a sign it belongs in `Common.Shared` instead, or that the calling code is
-  reaching past `Data.DbAccess` (a rule-4 violation — see the repo's `CLAUDE.md`).
+- Referenced from `Data.Db` — the `DbContext` (`MileseDbContext`) calls
+  `RegisterValueTypeConverters(...)` from `ConfigureConventions` and `UseValueTypeTranslation()` from
+  `OnConfiguring` — and, when a query needs `WhereIfValue`/`ToPagedResultAsync`, from `Data.DbAccess`.
+  Never from `Services.Core` or `Api`. If a helper here seems useful in `Services.Core`, that's a sign
+  it belongs in `Common.Shared` instead, or that the calling code is reaching past `Data.DbAccess` (a
+  rule-4 violation — see the repo's `CLAUDE.md`).
+- `Api`'s composition root (`Program.cs`) is the one place allowed to reference `Data.Db` directly, to
+  register `MileseDbContext` in DI — that's wiring, not the "no layer skipping" rule, which is about
+  request-handling/business-logic code paths never touching `Data.Db`/`Data.DbAccess`.
 
 ---
 
@@ -70,12 +75,20 @@ no way to get an instance that skips validation through `Parse` — the object i
 only other construction path, and both are trusted-input-only call sites inside the framework, never
 something application code calls directly.
 
+**`Value` is never `required`.** Every `ValueTypeParser` method (and `IIdValueType<TSelf>`/
+`IDateTimeValueType<TSelf>` directly) constrains its own `TSelf` with `new()`, and C# forbids a `new()`
+constraint from being satisfied by a type with `required` members (CS9040) — so a Value Type that goes
+through `ValueTypeParser` at all can't mark `Value` `required` without breaking the build. This is the
+one deliberate exception to `csharp-standards`' "required properties" rule; the "never expose
+construction outside `Parse`" guarantee below still holds, it's just a convention rather than a
+compiler-enforced one for this specific property.
+
 **Bounded number** — implement `IValueType<TSelf,T>` directly when no specialised contract fits:
 
 ```csharp
 public sealed class EstimatedMinutes : IValueType<EstimatedMinutes, int>
 {
-    public required int Value { get; init; }
+    public int Value { get; init; }
 
     public static Result<EstimatedMinutes, InvalidData> Parse(int value) =>
         value is >= 1 and <= 15
@@ -95,7 +108,7 @@ encodes "strictly positive" and the async exists-check:
 ```csharp
 public sealed class LessonId : IIdValueType<LessonId>
 {
-    public required int Value { get; init; }
+    public int Value { get; init; }
 
     public static string FieldName => nameof(LessonId);
 
@@ -113,12 +126,14 @@ reconstructing a `Bo` from a `*Db` row).
 
 **String** — implement `IStringValueType<TSelf>` and delegate to `ValueTypeParser`; declaring
 `MaxLength` is what lets `Common.Server`'s converter registry set the database column's length
-automatically (see `ef-core`) — never hardcode the number in a `[MaxLength(...)]` attribute instead:
+automatically (see `ef-core`) — never hardcode the number in a `[MaxLength(...)]` attribute instead.
+A string property does trigger nullable-reference warnings without `required`, so give it `= default!`
+instead:
 
 ```csharp
 public sealed class LessonTitle : IStringValueType<LessonTitle>
 {
-    public required string Value { get; init; }
+    public string Value { get; init; } = default!;
 
     public static int MaxLength => 200;
 

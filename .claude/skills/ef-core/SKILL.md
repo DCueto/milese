@@ -33,19 +33,22 @@ conversion machinery referenced below lives in `Common.Server` — see the **com
   tracking only for the specific write operations that need it.
 
 ```csharp
-builder.Services.AddDbContextFactory<MileseDbContext>((sp, options) => options
+builder.Services.AddDbContextFactory<MileseDbContext>(options => options
     .UseNpgsql(connectionString)
     .UseSnakeCaseNamingConvention()
     .UseValidationCheckConstraints()
-    .UseValueTypeTranslation()
     .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 ```
 
-`connectionString` comes from `appsettings.json`'s `ConnectionStrings` section (or an orchestrator's
-service discovery, if one is introduced later). `UseSnakeCaseNamingConvention()`
-(`EFCore.NamingConventions`), `UseValidationCheckConstraints()` (`EFCore.CheckConstraints`), and
-`UseValueTypeTranslation()` (`Common.Server` — lets `.Value` access on a value type translate to SQL
-instead of failing or evaluating client-side) are called once, in `MileseDbContext` registration.
+`connectionString` comes from `appsettings.json`'s `ConnectionStrings` section. This call lives in
+`Api`'s composition root (`Program.cs`) — the one place allowed to reference `Data.Db` directly, to
+register the concrete `MileseDbContext` (see the repo's `CLAUDE.md`, Architecture rule 4).
+`UseSnakeCaseNamingConvention()` (`EFCore.NamingConventions`) and `UseValidationCheckConstraints()`
+(`EFCore.CheckConstraints`) only need setting at registration; `UseValueTypeTranslation()`
+(`Common.Server` — lets `.Value` access on a value type translate to SQL instead of failing or
+evaluating client-side) and `RegisterValueTypeConverters(...)` are called once each, inside
+`MileseDbContext` itself (`OnConfiguring` / `ConfigureConventions` respectively) — not repeated at
+registration.
 
 ## Entity definition
 
@@ -57,19 +60,26 @@ are insufficient (composite keys, table splitting):
 public sealed class LessonDb
 {
     [Key]
-    public required int Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public LessonId Id { get; set; } = null!;   // DB-generated — never required, see below
 
-    [MaxLength(LessonTitle.MaxLength)]   // references the constant from the value type in Common.Types
-    public required string Title { get; set; }
+    public required LessonTitle Title { get; set; }
 }
 ```
 
-String `[MaxLength]` values **must** reference the `MaxLength` constant on the corresponding value
-type in `Common.Types` (see the **common-layer** skill) — never hardcode the number. In practice
-this is enforced automatically: register value-type converters once via
-`ModelConfigurationBuilder.RegisterValueTypeConverters(...)` (`Common.Server`), and every property
-whose type implements `IStringValueType`/`INumericValueType` gets its max length/precision applied by
-convention, with no per-property annotation needed at all.
+`*Db` properties are typed with the domain value type itself (`LessonId`, `LessonTitle`), not the raw
+primitive — `Common.Server`'s converter registry (`RegisterValueTypeConverters`, called once from
+`MileseDbContext.ConfigureConventions`) round-trips every property whose type implements `IValueType`
+to/from its underlying column automatically, including a string value type's `MaxLength` and a numeric
+one's `Precision`. Never add `[MaxLength(...)]`/`HasPrecision(...)` yourself — the number would just
+duplicate (and could drift from) the value type's own `MaxLength`/`Precision`.
+
+An identity-generated key (`[DatabaseGenerated(DatabaseGeneratedOption.Identity)]`) must **not** be
+`required` — C#'s `new()` generic constraint (used by `IIdValueType<TSelf>` and every
+`ValueTypeParser` method) cannot be satisfied by a type with required members, and every value type
+implementing `IIdValueType<TSelf>` is exactly such a type. Give it `= null!` instead and let EF Core
+populate it after `SaveChangesAsync`. Non-generated columns typed with a value type stay `required` as
+normal — this only applies to the generated key itself.
 
 ## DataAccess constructor
 
@@ -112,12 +122,17 @@ await ctx.SaveChangesAsync(cancellationToken);
 ## Migrations
 
 ```bash
-# Create a migration (run from the solution root)
-dotnet ef migrations add <MigrationName> --project apps/api/src/Data/Data.Migrations
+# Create a migration (run from the solution root — apps/api)
+dotnet ef migrations add <MigrationName> --project src/Data/Data.Db --startup-project src/Api/Api.Rest
 
 # Apply manually
-dotnet ef database update --project apps/api/src/Data/Data.Migrations
+dotnet ef database update --project src/Data/Data.Db --startup-project src/Api/Api.Rest
 ```
+
+Migrations live inside `Data.Db` itself (no separate `Data.Migrations` project) — Milese's a single
+personal-scale API host, not a multi-host solution that needs migrations decoupled from the DbContext
+project. `--startup-project` points at `Api.Rest` because that's where the connection string and
+`AddDbContextFactory<MileseDbContext>` registration live.
 
 Migration names: PascalCase describing the schema change (`AddTitleToLesson`, `CreateProgressTable`).
 Never hand-edit generated migration files — add a new migration to correct mistakes.
@@ -133,5 +148,5 @@ specifically requires comparing/reconciling migration history against the curren
 ## See also
 
 - **data-layer** — the persistence layer projects and the `*Db`/`*DataAccess`/`*Bo` rules this fits into
-- **common-layer** — `Common.Server`'s converter/translator/pagination helpers this skill builds on
-- **common-layer** — where `MaxLength`/`Precision` come from (a Value Type's contract)
+- **common-layer** — `Common.Server`'s converter/translator/pagination helpers, and where a Value
+  Type's `MaxLength`/`Precision` come from

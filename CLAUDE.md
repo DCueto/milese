@@ -49,7 +49,7 @@ Physical layout: `apps/api/src/<Group>/<Project>` (e.g. `src/Common/Common.Share
 1. A `*Db` type never crosses out of `Data.DbAccess` — everything above it sees only `Bo`s.
 2. No business logic in `Data.DbAccess` — it maps and queries, nothing else.
 3. No format/range validation in `Services.Core` — that belongs in a Value Type's `Parse()`. A `Bo` holding a Value Type is already valid by construction.
-4. No layer skipping (`Api` never touches `Data.Db`/`Data.DbAccess` directly; always through `Services.Core`).
+4. No layer skipping (`Api` never touches `Data.Db`/`Data.DbAccess` directly; always through `Services.Core`) — except `Api`'s composition root (`Program.cs`), which references `Data.Db` solely to register `MileseDbContext` in DI. No controller/endpoint or business logic touches it.
 5. `Common.Server` is EF Core-only glue (converters, member translation, pagination) — it depends only on `Common.Shared` and is never referenced by `Services.Core` or `Api`. `Common.Shared` depends on nothing and is safe from every layer.
 
 ## Always-on baseline
@@ -62,7 +62,17 @@ Physical layout: `apps/api/src/<Group>/<Project>` (e.g. `src/Common/Common.Share
 
 ## Commands
 
-_(Populated as `apps/api`'s solution and `apps/web`/`apps/mobile` are scaffolded — not yet present.)_
+`apps/api` (run from `apps/api/`):
+
+```bash
+dotnet build                     # zero warnings is the bar — TreatWarningsAsErrors is on
+dotnet test                      # once Tests/ projects exist
+dotnet ef migrations add <Name> --project src/Data/Data.Db --startup-project src/Api/Api.Rest
+dotnet ef database update --project src/Data/Data.Db --startup-project src/Api/Api.Rest
+dotnet run --project src/Api/Api.Rest
+```
+
+`apps/web`/`apps/mobile`/`apps/content`: _(not yet scaffolded)_.
 
 ## Skills
 
