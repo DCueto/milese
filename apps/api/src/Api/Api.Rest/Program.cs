@@ -1,10 +1,10 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Milese.Api.Rest.Extensions;
+using Milese.Aspire.ServiceDefaults;
 using Milese.Data.Db;
 using Serilog;
 
@@ -14,24 +14,27 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.AddServiceDefaults();
+
     builder.Host.UseSerilog((context, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
 
     builder.Services.AddControllers();
 
-    var connectionString = builder.Configuration.GetConnectionString("milese")
-        ?? throw new InvalidOperationException("Missing 'milese' connection string.");
+    builder.AddNpgsqlDbContext<MileseDbContext>(
+        "milesedb",
+        configureDbContextOptions: options => options
+            .UseSnakeCaseNamingConvention()
+            .UseValidationCheckConstraints()
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 
-    builder.Services.AddDbContextFactory<MileseDbContext>(options => options
-        .UseNpgsql(connectionString)
-        .UseSnakeCaseNamingConvention()
-        .UseValidationCheckConstraints()
-        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+    builder.Services.AddDbContextFactory<MileseDbContext>(lifetime: ServiceLifetime.Scoped);
 
     builder.Services.AddMileseDataAccessAndServices();
 
     var app = builder.Build();
 
+    app.MapDefaultEndpoints();
     app.MapControllers();
 
     await app.RunAsync();

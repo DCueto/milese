@@ -3,6 +3,11 @@
   <Folder Name="/src/Api/">
     <Project Path="src/Api/Api.Rest/Api.Rest.csproj" />
   </Folder>
+  <Folder Name="/src/Aspire/">
+    <Project Path="src/Aspire/Aspire.AppHost/Aspire.AppHost.csproj" />
+    <Project Path="src/Aspire/Aspire.MigrationService/Aspire.MigrationService.csproj" />
+    <Project Path="src/Aspire/Aspire.ServiceDefaults/Aspire.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/src/Common/">
     <Project Path="src/Common/Common.Server/Common.Server.csproj" />
     <Project Path="src/Common/Common.Shared/Common.Shared.csproj" />
@@ -14,5 +19,14 @@
   </Folder>
   <Folder Name="/src/Services/">
     <Project Path="src/Services/Services.Core/Services.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Api.Rest.Tests/Api.Rest.Tests.csproj" />
+    <Project Path="tests/Common.Shared.Tests/Common.Shared.Tests.csproj" />
+    <Project Path="tests/Common.Types.Tests/Common.Types.Tests.csproj" />
+    <Project Path="tests/Data.DbAccess.Tests/Data.DbAccess.Tests.csproj" />
+    <Project Path="tests/Services.Core.Tests/Services.Core.Tests.csproj" />
+    <Project Path="tests/Tests.Integration/Tests.Integration.csproj" />
+    <Project Path="tests/Tests/Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Milese.Tests</RootNamespace>
+    <AssemblyName>Milese.Tests</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="TUnit" />
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aspire\Aspire.AppHost\Aspire.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Aspire\Aspire.MigrationService\Aspire.MigrationService.csproj" />
+    <ProjectReference Include="..\..\src\Aspire\Aspire.ServiceDefaults\Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\src\Common\Common.Server\Common.Server.csproj" />
+    <ProjectReference Include="..\..\src\Common\Common.Shared\Common.Shared.csproj" />
+    <ProjectReference Include="..\..\src\Common\Common.Types\Common.Types.csproj" />
+    <ProjectReference Include="..\..\src\Data\Data.Db\Data.Db.csproj" />
+    <ProjectReference Include="..\..\src\Data\Data.DbAccess\Data.DbAccess.csproj" />
+    <ProjectReference Include="..\..\src\Services\Services.Core\Services.Core.csproj" />
+    <ProjectReference Include="..\..\src\Api\Api.Rest\Api.Rest.csproj" />
+  </ItemGroup>
+</Project>

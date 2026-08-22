@@ -16,7 +16,7 @@ Two units of work:
 
 Branches: `<type>/<kebab-slug>` off `main` (`feat/`, `fix/`, `chore/`, `docs/`). Commits: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). Never commit without explicit confirmation; never `git add -A` — stage named files.
 
-**Done means:** the relevant project builds with zero warnings, its tests pass, and — once `Tests/ArchTests` exists — no architecture fitness test regresses. Don't add a fitness test pre-emptively for a rule that's only been violated once; add it on the *second* violation.
+**Done means:** the relevant project builds with zero warnings, its tests pass (see `testing` — every public method needs one), and no `Tests/ArchTests` fitness test regresses. Don't add a fitness test pre-emptively for a rule that's only been violated once; add it on the *second* violation.
 
 ### Where a rule belongs
 
@@ -49,7 +49,7 @@ Physical layout: `apps/api/src/<Group>/<Project>` (e.g. `src/Common/Common.Share
 1. A `*Db` type never crosses out of `Data.DbAccess` — everything above it sees only `Bo`s.
 2. No business logic in `Data.DbAccess` — it maps and queries, nothing else.
 3. No format/range validation in `Services.Core` — that belongs in a Value Type's `Parse()`. A `Bo` holding a Value Type is already valid by construction.
-4. No layer skipping (`Api` never touches `Data.Db`/`Data.DbAccess` directly; always through `Services.Core`) — except `Api`'s composition root (`Program.cs`), which references `Data.Db` solely to register `MileseDbContext` in DI. No controller/endpoint or business logic touches it.
+4. No layer skipping (`Api` never touches `Data.Db`/`Data.DbAccess` directly; always through `Services.Core`) — except the composition root (`Program.cs` and `Api.Rest.Extensions`'s DI-wiring helpers), which references `Data.Db` to register `MileseDbContext` and `Data.DbAccess` as reflection scan markers for auto-registering `*DataAccess`/`*Service` classes. No controller or business logic touches either. Enforced by `Tests/ArchTests/LayerDependencyTests.cs`.
 5. `Common.Server` is EF Core-only glue (converters, member translation, pagination) — it depends only on `Common.Shared` and is never referenced by `Services.Core` or `Api`. `Common.Shared` depends on nothing and is safe from every layer.
 
 ## Always-on baseline
@@ -65,12 +65,19 @@ Physical layout: `apps/api/src/<Group>/<Project>` (e.g. `src/Common/Common.Share
 `apps/api` (run from `apps/api/`):
 
 ```bash
-dotnet build                     # zero warnings is the bar — TreatWarningsAsErrors is on
-dotnet test                      # once Tests/ projects exist
+dotnet build                                    # zero warnings is the bar — TreatWarningsAsErrors is on
+dotnet test --solution Milese.slnx              # every test project; see the testing skill for filters
 dotnet ef migrations add <Name> --project src/Data/Data.Db --startup-project src/Api/Api.Rest
 dotnet ef database update --project src/Data/Data.Db --startup-project src/Api/Api.Rest
-dotnet run --project src/Api/Api.Rest
+dotnet run --project src/Aspire/Aspire.AppHost  # orchestrated: Postgres container + migrations + Api.Rest
+dotnet run --project src/Api/Api.Rest           # Api.Rest alone, against a manually-run Postgres
 ```
+
+The AppHost (`src/Aspire/Aspire.AppHost`) is the normal way to run the API locally — it starts a
+Postgres container, waits for `Aspire.MigrationService` to apply migrations, then starts `Api.Rest`
+wired to it via service discovery. Running `Api.Rest` directly still works (`AddNpgsqlDbContext` falls
+back to `ConnectionStrings:milesedb` in `appsettings.json`) for a manually-run Postgres container — see
+`ef-core`.
 
 `apps/web`/`apps/mobile`/`apps/content`: _(not yet scaffolded)_.
 
