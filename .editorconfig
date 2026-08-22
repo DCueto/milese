@@ -1,0 +1,50 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+indent_style = space
+
+[*.{cs}]
+indent_size = 4
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.{ts,tsx,js,jsx}]
+indent_size = 2
+
+# ---- C# (apps/api) ----------------------------------------------------
+[*.cs]
+# File-scoped namespaces are the standard — never block-scoped.
+csharp_style_namespace_declarations = file_scoped:warning
+
+# Functional-first style: prefer expressions and pattern matching over
+# statement bodies and imperative branching wherever the language allows it.
+csharp_style_expression_bodied_methods = when_on_single_line:warning
+csharp_style_expression_bodied_constructors = when_on_single_line:warning
+csharp_style_expression_bodied_operators = when_on_single_line:warning
+csharp_style_expression_bodied_local_functions = when_on_single_line:warning
+csharp_style_expression_bodied_properties = true:warning
+csharp_style_expression_bodied_indexers = true:warning
+csharp_style_expression_bodied_accessors = true:warning
+csharp_style_expression_bodied_lambdas = true:warning
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_switch_expression = true:warning
+csharp_prefer_simple_default_expression = true:warning
+
+dotnet_style_readonly_field = true:warning
+dotnet_diagnostic.CA1852.severity = warning  # seal internal types
+
+# Banned APIs (see apps/api/BannedSymbols.txt) is a hard build failure, not a suggestion.
+dotnet_diagnostic.RS0030.severity = error
+
+# Generated files are exempt from all of the above.
+[*.Designer.cs]
+generated_code = true
