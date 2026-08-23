@@ -1,0 +1,17 @@
+{
+  "name": "@milese/api-types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript types generated from apps/api's OpenAPI spec. Do not hand-edit src/generated.ts.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "generate": "openapi-typescript http://localhost:5080/openapi/v1.json -o src/generated.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  }
+}

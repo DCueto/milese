@@ -23,6 +23,9 @@ Milese is a monorepo with one backend and two client apps sharing generated API 
 | `apps/web` | Next.js, TypeScript | Planned — see [docs/adr](./docs/adr) |
 | `apps/mobile` | React Native (Expo), TypeScript | Planned — see [docs/adr](./docs/adr) |
 | `apps/content` | Markdown/MDX lessons + sync tooling | Planned |
+| `packages/api-types` | TypeScript types generated from `apps/api`'s OpenAPI spec | In progress |
+
+The JS/TS side (`apps/web`, `apps/mobile`, `packages/api-types`) is a [pnpm workspace](./pnpm-workspace.yaml) ([ADR-0021](./docs/adr/0021-pnpm-workspaces-for-js-monorepo.md)).
 
 `apps/api` follows a pragmatic functional-core / mutable-shell split (recorded in [ADR-0005](./docs/adr/0005-pragmatic-fp-split.md)): an immutable domain core with `Result`/`Either`-based error handling, EF Core confined to the boundary.
 
@@ -44,6 +47,7 @@ Each layer only depends on the ones above it in this list — enforced by an arc
 
 - [.NET SDK 10.0.400](https://dotnet.microsoft.com/download) (pinned in [`apps/api/global.json`](./apps/api/global.json))
 - [Docker](https://www.docker.com/) (for the local PostgreSQL container)
+- [pnpm](https://pnpm.io/) (JS/TS workspace — `apps/web`, `apps/mobile`, `packages/api-types`)
 
 ### Run the API
 
@@ -78,6 +82,8 @@ apps/
   web/            Next.js web client (planned)
   mobile/         React Native (Expo) mobile client (planned)
   content/        Lesson content as code + sync tooling (planned)
+packages/
+  api-types/      TypeScript types generated from apps/api's OpenAPI spec (pnpm workspace)
 docs/
   adr/            One file per hard-to-reverse architectural decision
   agents/         Notes for AI coding agents working in this repo (issue tracker, triage, domain docs)
