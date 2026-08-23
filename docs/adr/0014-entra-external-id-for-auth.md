@@ -1,0 +1,9 @@
+# Auth is Microsoft Entra External ID, federated to Google, not a hand-rolled OAuth+JWT scheme
+
+Real, minimal auth is required from day one (PROJECT-BRIEF §13), and the choice was between talking to Google's OAuth endpoints directly and hand-rolling JWT issuance, or delegating to a managed identity platform. We chose **Microsoft Entra External ID** (the customer-facing CIAM product, an external tenant — not workforce Entra ID), using **browser-delegated authentication** federated to Google as the sign-in option. Entra issues and signs the tokens; `Microsoft.Identity.Web` validates them on the API side. It's free for the first 50,000 monthly active users, which covers this project for the foreseeable future.
+
+**Why:** offloads token issuance, signing-key rotation, and session security to Microsoft instead of a junior engineer hand-rolling JWT correctness, and it's deliberate practice with the Microsoft identity stack that pairs directly with the project's Azure AI Foundry/Microsoft Agent Framework dependency (PROJECT-BRIEF §16, §10).
+
+**Considered:** talking to Google's OAuth endpoints directly and hand-rolling JWT issuance in ASP.NET Core — simpler to stand up, no Azure tenant/app-registration ceremony, and avoids a second concrete Microsoft-cloud dependency beyond Azure AI Foundry. Rejected because owning JWT signing/rotation is a real, avoidable security surface for an MVP with no operational security team.
+
+**Consequences:** Entra's federated-Google sign-in is only available via browser-delegated auth (redirect to a Microsoft-hosted page) — Entra's newer native-authentication SDK (in-app login UI) supports local email+password/OTP accounts only, not federated Google, so an in-app-native-feeling login screen is off the table as long as Google sign-in is offered. The mobile client (Expo) has no official first-party MSAL SDK; it drives the same browser-delegated flow via `expo-auth-session` as any standard OIDC client would.
