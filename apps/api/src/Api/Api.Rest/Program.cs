@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Tokens;
 using Milese.Api.Rest.Extensions;
 using Milese.Api.Rest.Identity;
 using Milese.Aspire.ServiceDefaults;
@@ -27,9 +28,40 @@ try
     builder.Services.AddControllers();
     builder.Services.AddOpenApi();
 
+    var isDevelopmentEnvironment = builder.Environment.IsDevelopment();
+
+    var defaultAuthenticationScheme = isDevelopmentEnvironment
+        ? DevOrEntraAuthenticationScheme.Name
+        : JwtBearerDefaults.AuthenticationScheme;
+
     builder.Services
-        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddAuthentication(defaultAuthenticationScheme)
         .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraExternalId"));
+
+    builder.Services.Configure<JwtBearerOptions>(
+        JwtBearerDefaults.AuthenticationScheme, options => options.MapInboundClaims = false);
+
+    if (isDevelopmentEnvironment)
+    {
+        builder.Services
+            .AddAuthentication()
+            .AddJwtBearer(DevTokenAuthentication.SchemeName, options =>
+            {
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = DevTokenAuthentication.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = DevTokenAuthentication.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = DevTokenAuthentication.SigningKey,
+                    ValidateLifetime = true,
+                };
+            })
+            .AddPolicyScheme(DevOrEntraAuthenticationScheme.Name, DevOrEntraAuthenticationScheme.Name, options =>
+                options.ForwardDefaultSelector = DevOrEntraAuthenticationScheme.SelectScheme);
+    }
 
     builder.Services.AddAuthorization(options =>
         options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -62,6 +94,7 @@ try
     {
         app.MapOpenApi().AllowAnonymous();
         app.MapScalarApiReference().AllowAnonymous();
+        app.MapDevTokenEndpoint();
     }
 
     await app.RunAsync();

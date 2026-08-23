@@ -5,7 +5,9 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Milese.Data.Db;
 
 namespace Milese.Api.Rest.Tests.Http;
 
@@ -50,14 +52,37 @@ public sealed class RealAuthenticationTests : HttpIntegrationTest
         await Assert.That(response.StatusCode).IsStrictlyEqualTo(HttpStatusCode.Unauthorized);
     }
 
-    private static string CreateToken(bool expired, string audience)
+    [Test]
+    public async Task A_valid_real_scheme_token_with_identity_claims_is_accepted_and_JIT_provisions_a_user()
+    {
+        var client = CreateClientWithFixedJwtSigningKey(Issuer, Audience, SigningKey);
+        var entraObjectId = Guid.NewGuid();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", CreateToken(expired: false, audience: Audience, entraObjectId));
+
+        var response = await client.GetAsync("/api/lessons?conceptId=1");
+
+        await Assert.That(response.StatusCode).IsStrictlyEqualTo(HttpStatusCode.OK);
+
+        await using var context = await DbContextFactory.CreateDbContextAsync();
+        var exists = await context.Users.AnyAsync(u => u.EntraObjectId == entraObjectId);
+        await Assert.That(exists).IsTrue();
+    }
+
+    private static string CreateToken(bool expired, string audience, Guid? entraObjectId = null)
     {
         var handler = new JwtSecurityTokenHandler();
         var now = DateTime.UtcNow;
+        var claims = new[]
+        {
+            new Claim("oid", (entraObjectId ?? Guid.NewGuid()).ToString()),
+            new Claim("email", "real-scheme-learner@example.com"),
+            new Claim("name", "Real Scheme Learner"),
+        };
         var token = new JwtSecurityToken(
             issuer: Issuer,
             audience: audience,
-            claims: [new Claim("oid", Guid.NewGuid().ToString())],
+            claims: claims,
             notBefore: expired ? now.AddMinutes(-10) : now.AddMinutes(-1),
             expires: expired ? now.AddMinutes(-5) : now.AddMinutes(5),
             signingCredentials: new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256));

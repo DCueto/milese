@@ -42,7 +42,10 @@ public sealed class UsersUpdateDataAccess
         catch (DbUpdateException)
         {
             await using var conflictCtx = await dbCntxFactory.CreateDbContextAsync(cancellationToken);
-            var existing = await conflictCtx.Users.SingleAsync(x => x.EntraObjectId == entraObjectId, cancellationToken);
+            var existing = await conflictCtx.Users.SingleOrDefaultAsync(x => x.EntraObjectId == entraObjectId, cancellationToken);
+            if (existing is null)
+                throw;
+
             return existing.ToBo();
         }
 

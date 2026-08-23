@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -47,12 +48,30 @@ public abstract class HttpIntegrationTest : DatabaseIntegrationTest
             {
                 options.Configuration = new OpenIdConnectConfiguration { Issuer = issuer };
                 options.TokenValidationParameters.ValidateIssuer = false;
+                options.TokenValidationParameters.IssuerValidator = (tokenIssuer, _, _) => tokenIssuer;
                 options.TokenValidationParameters.ValidAudience = audience;
                 options.TokenValidationParameters.IssuerSigningKey = signingKey;
+
+                // Microsoft.Identity.Web wires its own OnTokenValidated into AddMicrosoftIdentityWebApi's
+                // Events, which re-validates the issuer against real Entra tenant metadata regardless of
+                // TokenValidationParameters above. Resetting Events removes that hook so a token signed
+                // with our own test key can validate against a fake issuer/tenant.
+                options.Events = new JwtBearerEvents();
             })));
         derivedFactories.Add(derivedFactory);
         return derivedFactory.CreateClient();
     }
+
+    protected HttpClient CreateClientForEnvironment(string environmentName)
+    {
+        var derivedFactory = RequireFactory().WithWebHostBuilder(builder => builder.UseEnvironment(environmentName));
+        derivedFactories.Add(derivedFactory);
+        return derivedFactory.CreateClient();
+    }
+
+    protected HttpClient CreateAuthenticatedClientForEnvironment(
+        string environmentName, string entraObjectId = TestAuthHandlerOptions.DefaultEntraObjectId) =>
+        BuildAuthenticatedFactory(entraObjectId, builder => builder.UseEnvironment(environmentName)).CreateClient();
 
     public override async ValueTask DisposeAsync()
     {
@@ -65,14 +84,19 @@ public abstract class HttpIntegrationTest : DatabaseIntegrationTest
         await base.DisposeAsync();
     }
 
-    private WebApplicationFactory<Program> BuildAuthenticatedFactory(string entraObjectId)
+    private WebApplicationFactory<Program> BuildAuthenticatedFactory(
+        string entraObjectId, Action<IWebHostBuilder>? configureHost = null)
     {
-        var derivedFactory = RequireFactory().WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
-            services
-                .AddAuthentication(TestAuthHandler.SchemeName)
-                .AddScheme<TestAuthHandlerOptions, TestAuthHandler>(
-                    TestAuthHandler.SchemeName,
-                    options => options.EntraObjectId = entraObjectId)));
+        var derivedFactory = RequireFactory().WithWebHostBuilder(builder =>
+        {
+            configureHost?.Invoke(builder);
+            builder.ConfigureTestServices(services =>
+                services
+                    .AddAuthentication(TestAuthHandler.SchemeName)
+                    .AddScheme<TestAuthHandlerOptions, TestAuthHandler>(
+                        TestAuthHandler.SchemeName,
+                        options => options.EntraObjectId = entraObjectId));
+        });
         derivedFactories.Add(derivedFactory);
         return derivedFactory;
     }

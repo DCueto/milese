@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] A Development-only endpoint, mapped only inside `if (app.Environment.IsDevelopment())` (the existing pattern already used for Scalar/OpenAPI), issues a locally-signed token for a fixed or caller-specified dev `UserId`.
-- [ ] A second, Development-only authentication scheme is registered alongside the real Entra scheme, validating only tokens signed by this endpoint — the real Entra scheme is untouched.
-- [ ] In Development, a token from this endpoint is accepted by a protected endpoint (verified by a `WebApplicationFactory` test configured for the Development environment).
-- [ ] Outside Development, a `WebApplicationFactory` test configured for a non-Development environment proves the minting endpoint returns `404`/doesn't exist, and a token shaped like its output is rejected (the accepting scheme isn't registered at all).
+- [x] A Development-only endpoint, mapped only inside `if (app.Environment.IsDevelopment())` (the existing pattern already used for Scalar/OpenAPI), issues a locally-signed token for a fixed or caller-specified dev `UserId`.
+- [x] A second, Development-only authentication scheme is registered alongside the real Entra scheme, validating only tokens signed by this endpoint — the real Entra scheme is untouched.
+- [x] In Development, a token from this endpoint is accepted by a protected endpoint (verified by a `WebApplicationFactory` test configured for the Development environment).
+- [x] Outside Development, a `WebApplicationFactory` test configured for a non-Development environment proves the minting endpoint returns `404`/doesn't exist, and a token shaped like its output is rejected (the accepting scheme isn't registered at all).
