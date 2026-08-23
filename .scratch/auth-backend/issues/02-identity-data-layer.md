@@ -6,10 +6,10 @@
 
 **Status:** ready-for-agent
 
-- [ ] `UserId` is a `readonly record struct` wrapping a strictly-positive `int` (sequential, not a Guid — ADR-0015), implementing the same `IIdValueType<T>` pattern as `TrackId`/`SubjectId`/`ConceptId`/`LessonId`, with `Parse()`/`ParseAsync()`.
-- [ ] `Common.Types.Tests` covers `UserId.Parse()` for valid and invalid (non-positive) input, mirroring the existing `TrackId` test pattern.
-- [ ] `UserDb` holds exactly `Id` (PK, `UserId`), `EntraObjectId` (Guid, unique index — the sign-in lookup key), `Email`, `DisplayName` — nothing learning-specific (no `LearningMode`, no progress fields).
-- [ ] `UserBo` is the immutable domain record counterpart, and `UserMapper` maps `UserDb <-> UserBo` following the existing Db/Bo mapping convention.
-- [ ] `Data.DbAccess` exposes `FindByEntraObjectIdAsync`/`CreateAsync`-shaped primitives only — no business logic (lookup-or-create belongs in a later ticket's `Services.Core` work).
-- [ ] An EF Core migration creates the `UserDb` table; applying it against a real Postgres database succeeds.
-- [ ] A DB integration test (via the existing `DatabaseIntegrationTest`/`TestDatabaseFactory` infrastructure) proves a `UserDb` row can be created and read back by `EntraObjectId` — no HTTP, no auth involved.
+- [x] `UserId` is a `readonly record struct` wrapping a strictly-positive `int` (sequential, not a Guid — ADR-0015), implementing the same `IIdValueType<T>` pattern as `TrackId`/`SubjectId`/`ConceptId`/`LessonId`, with `Parse()`/`ParseAsync()`.
+- [x] `Common.Types.Tests` covers `UserId.Parse()` for valid and invalid (non-positive) input, mirroring the existing `TrackId` test pattern. (Covered automatically by the reflection-based `IdValueTypeConventionTests` that every `IIdValueType` implementation runs through — no dedicated `UserId` test file needed, same as `TrackId`.)
+- [x] `UserDb` holds exactly `Id` (PK, `UserId`), `EntraObjectId` (Guid, unique index — the sign-in lookup key), `Email`, `DisplayName` — nothing learning-specific (no `LearningMode`, no progress fields).
+- [x] `UserBo` is the immutable domain record counterpart, and `UserMapper` maps `UserDb <-> UserBo` following the existing Db/Bo mapping convention.
+- [x] `Data.DbAccess` exposes `FindByEntraObjectIdAsync`/`CreateAsync`-shaped primitives only — no business logic (lookup-or-create belongs in a later ticket's `Services.Core` work).
+- [x] An EF Core migration creates the `UserDb` table; applying it against a real Postgres database succeeds.
+- [x] A DB integration test (via the existing `DatabaseIntegrationTest`/`TestDatabaseFactory` infrastructure) proves a `UserDb` row can be created and read back by `EntraObjectId` — no HTTP, no auth involved.

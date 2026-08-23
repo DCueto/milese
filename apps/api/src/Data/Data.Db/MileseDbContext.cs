@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Milese.Common.Server;
 using Milese.Common.Types.ValueTypes.Identity;
 using Milese.Data.Db.Curriculum;
+using Milese.Data.Db.Identity;
 
 namespace Milese.Data.Db;
 
@@ -19,6 +20,8 @@ public sealed class MileseDbContext : DbContext
     public DbSet<ConceptDb> Concepts => Set<ConceptDb>();
 
     public DbSet<LessonDb> Lessons => Set<LessonDb>();
+
+    public DbSet<UserDb> Users => Set<UserDb>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
