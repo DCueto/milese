@@ -4,10 +4,13 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Milese.Tests.Integration;
 
 namespace Milese.Api.Rest.Tests.Http;
@@ -33,6 +36,22 @@ public abstract class HttpIntegrationTest : DatabaseIntegrationTest
         using var scope = BuildAuthenticatedFactory(entraObjectId).Services.CreateScope();
         var context = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
         return await context.AuthenticateAsync(TestAuthHandler.SchemeName);
+    }
+
+    protected HttpClient CreateClient() => RequireFactory().CreateClient();
+
+    protected HttpClient CreateClientWithFixedJwtSigningKey(string issuer, string audience, SecurityKey signingKey)
+    {
+        var derivedFactory = RequireFactory().WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.Configuration = new OpenIdConnectConfiguration { Issuer = issuer };
+                options.TokenValidationParameters.ValidateIssuer = false;
+                options.TokenValidationParameters.ValidAudience = audience;
+                options.TokenValidationParameters.IssuerSigningKey = signingKey;
+            })));
+        derivedFactories.Add(derivedFactory);
+        return derivedFactory.CreateClient();
     }
 
     public override async ValueTask DisposeAsync()

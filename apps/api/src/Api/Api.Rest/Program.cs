@@ -1,9 +1,13 @@
 using System;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Identity.Web;
 using Milese.Api.Rest.Extensions;
+using Milese.Api.Rest.Identity;
 using Milese.Aspire.ServiceDefaults;
 using Milese.Data.Db;
 using Scalar.AspNetCore;
@@ -23,6 +27,15 @@ try
     builder.Services.AddControllers();
     builder.Services.AddOpenApi();
 
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraExternalId"));
+
+    builder.Services.AddAuthorization(options =>
+        options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build());
+
     builder.AddNpgsqlDbContext<MileseDbContext>(
         "milesedb",
         configureDbContextOptions: options => options
@@ -38,12 +51,17 @@ try
     var app = builder.Build();
 
     app.MapDefaultEndpoints();
+
+    app.UseAuthentication();
+    app.UseMiddleware<UserProvisioningMiddleware>();
+    app.UseAuthorization();
+
     app.MapControllers();
 
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
-        app.MapScalarApiReference();
+        app.MapOpenApi().AllowAnonymous();
+        app.MapScalarApiReference().AllowAnonymous();
     }
 
     await app.RunAsync();

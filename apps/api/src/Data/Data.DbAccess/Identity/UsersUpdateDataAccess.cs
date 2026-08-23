@@ -34,8 +34,32 @@ public sealed class UsersUpdateDataAccess
         };
 
         await ctx.Users.AddAsync(db, cancellationToken);
-        await ctx.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await ctx.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            await using var conflictCtx = await dbCntxFactory.CreateDbContextAsync(cancellationToken);
+            var existing = await conflictCtx.Users.SingleAsync(x => x.EntraObjectId == entraObjectId, cancellationToken);
+            return existing.ToBo();
+        }
 
         return db.ToBo();
+    }
+
+    public async Task UpdateProfileAsync(UserBo user)
+    {
+        await using var ctx = await dbCntxFactory.CreateDbContextAsync(cancellationToken);
+
+        var db = await ctx.Users
+            .AsTracking()
+            .SingleAsync(x => x.Id == user.Id, cancellationToken);
+
+        db.Email = user.Email;
+        db.DisplayName = user.DisplayName;
+
+        await ctx.SaveChangesAsync(cancellationToken);
     }
 }
