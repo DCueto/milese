@@ -56,3 +56,8 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+#pragma warning disable S2094, S1118 // Empty marker type — makes the top-level-statements Program class
+// accessible to WebApplicationFactory<Program> in Api.Rest.Tests. No runtime behavior change.
+public sealed partial class Program;
+#pragma warning restore S2094, S1118

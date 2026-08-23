@@ -17,13 +17,13 @@ public abstract class DatabaseIntegrationTest : IAsyncInitializer, IAsyncDisposa
         (database ?? throw new InvalidOperationException(
             "The database has not been initialized yet.")).ContextFactory;
 
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         var settings = IntegrationTestSettingsLoader.Load();
         database = await TestDatabaseFactory.CreateAsync(settings, CancellationToken.None);
     }
 
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         if (database is not null)
             await database.DisposeAsync();

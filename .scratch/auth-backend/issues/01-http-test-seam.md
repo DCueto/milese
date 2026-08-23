@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] A base test fixture (alongside the existing `DatabaseIntegrationTest`) boots the app via `WebApplicationFactory<Program>` and exposes a real `HttpClient` for sending requests through the actual pipeline.
-- [ ] A custom `AuthenticationHandler<AuthenticationSchemeOptions>` (`TestAuthHandler`) can be substituted into the test host (via `ConfigureTestServices`) that always succeeds and carries a fixed/configurable `UserId` claim.
-- [ ] A smoke test proves the seam works end-to-end: a request sent through the real pipeline with `TestAuthHandler` substituted reaches an existing controller action and gets a successful response.
-- [ ] No product code in `apps/api` changes — this ticket is test infrastructure only.
+- [x] A base test fixture (alongside the existing `DatabaseIntegrationTest`) boots the app via `WebApplicationFactory<Program>` and exposes a real `HttpClient` for sending requests through the actual pipeline.
+- [x] A custom `AuthenticationHandler<AuthenticationSchemeOptions>` (`TestAuthHandler`) can be substituted into the test host (via `ConfigureTestServices`) that always succeeds and carries a fixed/configurable `UserId` claim.
+- [x] A smoke test proves the seam works end-to-end: a request sent through the real pipeline with `TestAuthHandler` substituted reaches an existing controller action and gets a successful response.
+- [x] No product code in `apps/api` changes — this ticket is test infrastructure only. (Exception: `Program.cs` gains a `public sealed partial class Program;` marker with zero runtime-behavior change — the standard, unavoidable way to make a top-level-statements entry point resolvable as `WebApplicationFactory<Program>`'s generic argument from a separate test assembly.)
